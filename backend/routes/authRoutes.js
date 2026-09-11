@@ -19,13 +19,13 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 // Google OAuth Callback Route
 router.get(
   '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:5173/login' }),
+  passport.authenticate('google', { session: false, failureRedirect: 'https://campusflow17.netlify.app/login' }),
   (req, res) => {
     // Generate JWT token for the authenticated user
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     
     // Redirect back to frontend with the session token
-    res.redirect(`http://localhost:5173/dashboard?token=${token}`);
+    res.redirect(`https://campusflow17.netlify.app/dashboard?token=${token}`);
   }
 );
 
