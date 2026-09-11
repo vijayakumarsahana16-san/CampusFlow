@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Copy, Check, Trash2, Edit, Tag, Calendar as CalendarIcon, MapPin, X, Users, User } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://campusflow-wt6t.onrender.com/api';
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);

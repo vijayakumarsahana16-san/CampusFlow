@@ -9,7 +9,7 @@ export default function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/students', {
+    fetch('https://campusflow-wt6t.onrender.com/api/students', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     })
       .then((res) => res.json())

@@ -9,7 +9,7 @@ export default function TeamsPage() {
   const [selectedTeam, setSelectedTeam] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/teams', {
+    fetch('https://campusflow-wt6t.onrender.com/api/teams', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     })
       .then((res) => res.json())

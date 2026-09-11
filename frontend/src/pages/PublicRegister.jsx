@@ -5,7 +5,7 @@ import {
   AlertCircle, ShieldCheck, Clock, Mail, Phone, GraduationCap, Info, Plus, Trash2 
 } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://campusflow-wt6t.onrender.com/api';
 
 export default function PublicRegistrationPage() {
   const { eventCode } = useParams();

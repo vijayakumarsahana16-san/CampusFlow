@@ -16,7 +16,7 @@ export default function Login() {
     console.log('Attempting login with:', { email, password });
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', {
+            const response = await fetch('https://campusflow-wt6t.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -35,7 +35,7 @@ export default function Login() {
     };
 
     const handleOAuthLogin = (provider) => {
-        window.location.href = `http://localhost:5000/api/auth/${provider}`;
+        window.location.href = `https://campusflow-wt6t.onrender.com/api/auth/${provider}`;
     };
 
     return (
