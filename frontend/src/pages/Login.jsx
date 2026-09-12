@@ -3,51 +3,56 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '../assets/campusflow.png';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://campusflow-wt6t.onrender.com';
+
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
-    console.log('Attempting login with:', { email, password });
+        setIsLoading(true);
 
         try {
-            const response = await fetch('https://campusflow-wt6t.onrender.com/api/auth/login', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
-            console.log('Login response:', data); // Debugging line
+
             if (!response.ok) throw new Error(data.error || 'Failed to login');
 
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            navigate('/dashboard');
-        } catch (err) {
-            setError(err.message);
-        }
-    };
+            // Safe LocalStorage handling for mobile private browsing
+            try {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+            } catch (storageError) {
+                console.warn('LocalStorage unavailable:', storageError);
+            }
 
-    const handleOAuthLogin = (provider) => {
-        window.location.href = `https://campusflow-wt6t.onrender.com/api/auth/${provider}`;
+            navigate('/dashboard', { replace: true });
+        } catch (err) {
+            setError(err.message || 'Network error occurred');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
-          
-            <div className="sm:mx-auto sm:w-full sm:max-w-md transition-all duration-700 ease-out">
-               
+            <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="flex items-center justify-center gap-3">
                     <Link to="/dashboard" className="flex items-center">
                         <img src={logo} alt="Campus Flow Logo" className="h-10 w-auto object-contain" />
                     </Link>
-                    <h2 className="font-logo text-2xl sm:text-3xl font-extrabold text-slate-900 animate-fade-in transition-all duration-300">
+                    <h2 className="font-logo text-2xl sm:text-3xl font-extrabold text-slate-900">
                         CAMPUS <span className="text-[#0088FF]">FLOW</span>
                     </h2>
                 </div>
@@ -57,11 +62,10 @@ export default function Login() {
                 </p>
             </div>
 
-            {/* Main Form Card */}
             <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-6 shadow-xl shadow-slate-200/50 rounded-2xl border border-slate-200/80 transition-all duration-300 hover:shadow-2xl">
+                <div className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-slate-200/80">
                     {error && (
-                        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm animate-bounce">
+                        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
@@ -74,7 +78,7 @@ export default function Login() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all duration-200 outline-none"
+                                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                             />
                         </div>
 
@@ -90,38 +94,33 @@ export default function Login() {
                                 </button>
                             </div>
 
-                            {/* Password Input with Eye Icon */}
                             <div className="relative mt-1">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="block w-full px-3 py-2.5 pr-10 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all duration-200 outline-none"
+                                    className="block w-full px-3 py-2.5 pr-10 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400"
                                 >
-                                    {showPassword ? (
-                                        <EyeOff className="h-5 w-5" />
-                                    ) : (
-                                        <Eye className="h-5 w-5" />
-                                    )}
+                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                 </button>
                             </div>
                         </div>
 
                         <button
                             type="submit"
-                            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                            disabled={isLoading}
+                            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-md transition-all cursor-pointer disabled:opacity-50"
                         >
-                            Sign In
+                            {isLoading ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
 
-                    {/* Social Divider */}
                     <div className="mt-6">
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
@@ -132,12 +131,11 @@ export default function Login() {
                             </div>
                         </div>
 
-                        {/* Social Buttons */}
                         <div className="mt-6 flex justify-center">
-                            <button
-                                type="button"
-                                onClick={() => handleOAuthLogin('google')}
-                                className="w-full max-w-xs flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                            {/* Mobile-Friendly Native Link for OAuth */}
+                            <a
+                                href={`${API_BASE_URL}/api/auth/google`}
+                                className="w-full max-w-xs flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-all text-center"
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -146,13 +144,13 @@ export default function Login() {
                                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                                 </svg>
                                 Continue with Google
-                            </button>
+                            </a>
                         </div>
                     </div>
 
                     <p className="mt-6 text-center text-sm text-slate-600">
                         Don't have an account?{' '}
-                        <Link to="/signup" className="text-blue-600 font-medium hover:underline transition-all">
+                        <Link to="/signup" className="text-blue-600 font-medium hover:underline">
                             Sign Up
                         </Link>
                     </p>

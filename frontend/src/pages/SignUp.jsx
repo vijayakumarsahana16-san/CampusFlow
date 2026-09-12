@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, GraduationCap, BookOpen, Sparkles } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import logo from '../assets/campusflow.png';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://campusflow-wt6t.onrender.com';
 
 export default function Signup() {
     const [formData, setFormData] = useState({
@@ -15,10 +17,15 @@ export default function Signup() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
     };
 
     const handleSignup = async (e) => {
@@ -29,11 +36,18 @@ export default function Signup() {
             return setError('Passwords do not match');
         }
 
+        setLoading(true);
+
         try {
-            const response = await fetch('https://campusflow-wt6t.onrender.com/api/auth/register', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    fullName: formData.fullName,
+                    email: formData.email,
+                    collegeName: formData.collegeName,
+                    password: formData.password,
+                }),
             });
 
             const data = await response.json();
@@ -42,15 +56,16 @@ export default function Signup() {
             navigate('/login');
         } catch (err) {
             setError(err.message);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleOAuthLogin = (provider) => {
-        window.location.href = `https://campusflow-wt6t.onrender.com/api/auth/${provider}`;
+        window.location.href = `${API_BASE_URL}/api/auth/${provider}`;
     };
 
     return (
-
         <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
             {/* Brand Header */}
             <div className="sm:mx-auto sm:w-full sm:max-w-md transition-all duration-700 ease-out">
@@ -58,7 +73,7 @@ export default function Signup() {
                     <Link to="/dashboard" className="flex items-center">
                         <img src={logo} alt="Campus Flow Logo" className="h-10 w-auto object-contain" />
                     </Link>
-                    <h2 className="font-logo text-2xl sm:text-3xl font-extrabold text-slate-900 animate-fade-in transition-all duration-300">
+                    <h2 className="font-logo text-2xl sm:text-3xl font-extrabold text-slate-900 transition-all duration-300">
                         CAMPUS <span className="text-[#0088FF]">FLOW</span>
                     </h2>
                 </div>
@@ -66,15 +81,12 @@ export default function Signup() {
                     Create an account to access the Management Portal
                 </p>
             </div>
-            
-
-
 
             {/* Main Signup Form Card */}
             <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-6 shadow-xl shadow-slate-200/50 rounded-2xl border border-slate-200/80 transition-all duration-300 hover:shadow-2xl">
                     {error && (
-                        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm animate-bounce">
+                        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
@@ -86,6 +98,7 @@ export default function Signup() {
                                 name="fullName"
                                 type="text"
                                 required
+                                value={formData.fullName}
                                 onChange={handleChange}
                                 className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm transition-all outline-none"
                             />
@@ -97,6 +110,7 @@ export default function Signup() {
                                 name="email"
                                 type="email"
                                 required
+                                value={formData.email}
                                 onChange={handleChange}
                                 className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm transition-all outline-none"
                             />
@@ -108,6 +122,7 @@ export default function Signup() {
                                 name="collegeName"
                                 type="text"
                                 required
+                                value={formData.collegeName}
                                 onChange={handleChange}
                                 className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm transition-all outline-none"
                             />
@@ -121,6 +136,7 @@ export default function Signup() {
                                     name="password"
                                     type={showPassword ? 'text' : 'password'}
                                     required
+                                    value={formData.password}
                                     onChange={handleChange}
                                     className="block w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm transition-all outline-none"
                                 />
@@ -142,6 +158,7 @@ export default function Signup() {
                                     name="confirmPassword"
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     required
+                                    value={formData.confirmPassword}
                                     onChange={handleChange}
                                     className="block w-full px-3 py-2 pr-10 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm transition-all outline-none"
                                 />
@@ -157,9 +174,10 @@ export default function Signup() {
 
                         <button
                             type="submit"
-                            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-md hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer"
+                            disabled={loading}
+                            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-md hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Create Account
+                            {loading ? 'Creating Account...' : 'Create Account'}
                         </button>
                     </form>
 
